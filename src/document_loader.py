@@ -18,7 +18,7 @@ def load_pdf(file_path: str) -> list[dict]:
     return pages
 
 if __name__ == "__main__":
-    result = load_pdf("data/sample.pdf")
+    result = load_pdf("data/Cambodia Trending Cars Report 2026 (1).pdf")
     print(f"Loaded {len(result)} pages.")
     print(result[0]["metadata"])
     print(result[0]["text"][:500])  # print first 500 characters of page 1
