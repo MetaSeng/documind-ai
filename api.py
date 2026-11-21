@@ -56,6 +56,13 @@ class QuestionRequest(BaseModel):
     question: str
     top_k: int = 3
 
+class SourceItem(BaseModel):
+    source: str
+    page: int | str
+    chunk_id: int | str
+    snippet: str
+
+
 
 @app.post("/ask")
 def ask_question(request: QuestionRequest):
@@ -66,12 +73,13 @@ def ask_question(request: QuestionRequest):
     if not request.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
-    try:
-        answer = answer_question(request.question, top_k=request.top_k)
+    try: 
+        result = answer_question(request.question, top_k = request.top_k)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Query failed: {str(e)}")
-
+        
     return {
-        "question": request.question,
-        "answer": answer,
-    }
+            "question": request.question,
+            "answer": result["answer"],
+            "sources" : result["sources"]
+        }

@@ -41,13 +41,14 @@ def ingest_document(pdf_path: str):
     store_chunks(chunks, embeddings)
     print("Ingestion complete!\n")
 
-def answer_question(question: str, top_k: int = 3) -> str:
+def answer_question(question: str, top_k: int = 3) -> dict:
     """
     Full query pipeline:
       1. Embed the user's question
       2. Search ChromaDB for top_k relevant chunks
       3. Build a prompt with retrieved context
       4. Ask Groq LLM to generate an answer
+      5. Return both the answer and the source citations
     """
     # Step 1: Embed the question
     query_embedding = generate_single_embedding(question)
@@ -83,4 +84,19 @@ ANSWER:"""
         temperature=0.2,
     )
 
-    return response.choices[0].message.content
+    answer_text = response.choices[0].message.content
+
+    # Step 6: Build structured source citations
+    sources = []
+    for chunk in relevant_chunks:
+        sources.append({
+            "source": chunk["metadata"].get("source", "Unknown"),
+            "page": chunk["metadata"].get("page", "?"),
+            "chunk_id": chunk["metadata"].get("chunk_id", "?"),
+            "snippet": chunk["text"][:200],  # First 200 chars as preview
+        })
+
+    return {
+        "answer": answer_text,
+        "sources": sources,
+    }
